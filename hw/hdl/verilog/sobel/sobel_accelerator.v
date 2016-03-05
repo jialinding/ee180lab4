@@ -46,8 +46,8 @@ assign      sacc2swt_write_data                 = sobel_out;
 // If you need any extra signals to help with the convolution, declare them here. Otherwise, you may remove these comments.
 // Note that you will need to use "reg" (not "wire") for any signals written to inside the "always" block.
 
-reg signed [11:0] convx_comb[`NUM_SOBEL_ACCELERATORS-1:0], convx_comb[`NUM_SOBEL_ACCELERATORS-1:0], sobel_comb[`NUM_SOBEL_ACCELERATORS-1:0];
-reg [11:0] convx_abs[`NUM_SOBEL_ACCELERATORS-1:0], convx_abs[`NUM_SOBEL_ACCELERATORS-1:0];
+reg signed [11:0] convx_comb[`NUM_SOBEL_ACCELERATORS-1:0], convy_comb[`NUM_SOBEL_ACCELERATORS-1:0], sobel_comb[`NUM_SOBEL_ACCELERATORS-1:0];
+reg [11:0] convx_abs[`NUM_SOBEL_ACCELERATORS-1:0], convy_abs[`NUM_SOBEL_ACCELERATORS-1:0];
 
 // *** Sobel convolution implementation ***
 // The provided implementation is incomplete. You will need to finish it.
