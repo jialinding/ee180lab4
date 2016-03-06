@@ -162,7 +162,7 @@ dffre #(IOBUF_ADDR_WIDTH)               buf_write_offset_r (                    
 dffre #(IOBUF_ADDR_WIDTH)               buf_write_offset_temp_r (                     // write offset register
     .clk                                        (clk),
     .r                                          (reset),
-    .en                                         (go & (state == STATE_PROCESSING_LOADSS_LAST)),
+    .en                                         (go & (state == STATE_PROCESSING_CALC_LAST)),
     .d                                          (buf_write_offset_temp + `NUM_SOBEL_ACCELERATORS),
     .q                                          (buf_write_offset_temp)
 );
