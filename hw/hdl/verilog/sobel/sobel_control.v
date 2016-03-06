@@ -382,7 +382,7 @@ always @ (*) begin
         
         STATE_PROCESSING_CALC: begin
             // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
-            row_counter_next                    = `SOBEL_ROW_OP_SHIFT_ROW;
+            row_counter_next                    = row_counter + 1;
         end
         
         // STATE_PROCESSING_LOADSS: begin
