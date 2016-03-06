@@ -221,7 +221,7 @@ always @ (*) begin
                 // *** Calculation state ***
                 // Insert your state transition code here.
                 state_next                      = STATE_PROCESSING_LOADSS;
-                if (row_counter_next == control_n_rows-1) begin
+                if (row_counter_next == control_n_rows-2) begin
                     state_next                  = STATE_PROCESSING_LOADSS_LAST;
                 end
             end
@@ -524,25 +524,25 @@ always @ (*) begin
         //     buf_read_offset_next                = control_n_cols;
         // end
         
-        STATE_PROCESSING_CALC: begin
+        // STATE_PROCESSING_CALC: begin
+        //     // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
+        //     buf_read_offset_next                = buf_read_offset + control_n_cols;
+        // end
+        
+        STATE_PROCESSING_LOADSS: begin
             // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
             buf_read_offset_next                = buf_read_offset + control_n_cols;
         end
         
-        // STATE_PROCESSING_LOADSS: begin
+        // STATE_PROCESSING_CALC_LAST: begin
         //     // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
-        //     buf_read_offset_next                = 'h0;
+        //     buf_read_offset_next                = (buf_read_offset % control_n_cols) + `NUM_SOBEL_ACCELERATORS;
         // end
         
-        STATE_PROCESSING_CALC_LAST: begin
+        STATE_PROCESSING_LOADSS_LAST: begin
             // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
             buf_read_offset_next                = (buf_read_offset % control_n_cols) + `NUM_SOBEL_ACCELERATORS;
         end
-        
-        // STATE_PROCESSING_LOADSS_LAST: begin
-        //     // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
-        //     buf_read_offset_next                = 'h0;
-        // end
         
         // STATE_PROCESSING_DONE: begin
         //     // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
