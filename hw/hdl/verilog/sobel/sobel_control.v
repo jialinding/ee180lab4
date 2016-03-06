@@ -221,7 +221,7 @@ always @ (*) begin
                 // *** Calculation state ***
                 // Insert your state transition code here.
                 state_next                      = STATE_PROCESSING_LOADSS;
-                if (row_counter_next == control_n_rows-2) begin
+                if (row_counter_next == control_n_rows-1) begin
                     state_next                  = STATE_PROCESSING_LOADSS_LAST;
                 end
             end
