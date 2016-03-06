@@ -534,10 +534,10 @@ always @ (*) begin
             buf_read_offset_next                = buf_read_offset + control_n_cols;
         end
         
-        // STATE_PROCESSING_CALC_LAST: begin
-        //     // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
-        //     buf_read_offset_next                = (buf_read_offset % control_n_cols) + `NUM_SOBEL_ACCELERATORS;
-        // end
+        STATE_PROCESSING_CALC_LAST: begin
+            // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
+            buf_read_offset_next                = buf_read_offset + control_n_cols;
+        end
         
         STATE_PROCESSING_LOADSS_LAST: begin
             // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
