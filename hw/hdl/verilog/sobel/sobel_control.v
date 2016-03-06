@@ -501,7 +501,7 @@ always @ (*) begin
             if (go) begin
                 // Once the control signal is asserted, does something need to happen?
                 // Think about what the next state is going to be and what data the accelerator expects to get.
-                buf_read_offset_next            = 'h0;
+                buf_read_offset_next            = control_n_cols;
             end else begin
                 // If there is no control signal, just read from the beginning of the image.
                 // This part is provided for you.
