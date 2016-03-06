@@ -221,7 +221,7 @@ always @ (*) begin
                 // *** Calculation state ***
                 // Insert your state transition code here.
                 state_next                      = STATE_PROCESSING_LOADSS;
-                if (row_counter_next == control_n_rows-1) begin
+                if (row_counter_next == control_n_rows-2) begin
                     state_next                  = STATE_PROCESSING_LOADSS_LAST;
                 end
             end
@@ -362,7 +362,7 @@ always @ (*) begin
     case (state)
         STATE_WAIT: begin
             // What should the starting value be? Insert your code here.
-            row_counter_next                    = 'h0;
+            row_counter_next                    = 'h1;
         end
         
         // STATE_LOADING_1: begin
@@ -392,7 +392,7 @@ always @ (*) begin
         
         STATE_PROCESSING_CALC_LAST: begin
             // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
-            row_counter_next                    = 'h0;
+            row_counter_next                    = 'h1;
         end
         
         // STATE_PROCESSING_LOADSS_LAST: begin
