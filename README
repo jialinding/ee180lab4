@@ -1,1 +1,45 @@
-TODO: Write your lab report here. See the handout for more information.
+README
+
+Group 18: Jialin Ding (jding09), David Pan (napdivad)
+
+Accelerator Core:
+
+To compute the x and y convolutions, we created the registers convx_comb/convy_comb (stores the linear combination of the pixels) and convx_abs/convy_abs (stores the absolute value of convx_comb/convy). In particular, we defined convx_comb/convy_comb as signed because the linear combination of the pixels could be negative. Then we threshold convx_abs/convy_abs at 255 using a ternary statement and store it in convx/convy to complete the computation.
+
+To compute the sobel convolution, we created the register sobel_comb (stores the sum of convx and convy). Then we threshold sobel_comb at 255 using a ternary statement and store it in sobel_sum to complete the computation.
+
+Control:
+
+State transitions
+
+We made LOADING_2 follow LOADING_1, LOADING_3 follow LOADING_2, and PROCESSING_CALC follow LOADING_3. In the state PROCESSING_CALC, we transition to PROCESSING_LOADSS if it’s not the last row, and to PROCESSING_LOADSS_LAST otherwise. We have PROCESSING_LOADSS transitioning to PROCESSING_CALC (since there’s more work to be done because we’re not at the last row). In the state STATE_PROCESSING_CALC_LAST, we transition to LOADING_1 if it’s not the last column strip, and to PROCESSING_DONE otherwise. Also, we have PROCESSING_LOADSS_LAST transitioning to PROCESSING_CALC_LAST.
+
+Row register command
+
+Shift row when in a load state; otherwise, hold.
+
+Row counter
+
+Row_counter starts at row 1. Keep incrementing row_counter_next when in the PROCESSING_CALC state, so that by the PROCESSING_LOADSS state, row_counter has been incremented. Set row_counter_next back to 1 in the PROCESSING_CALC_LAST state, so that by the LOADING_1 state for the next column strip, row_counter has been set to 1.
+
+Column strip counter
+
+Col_strip starts at 0. Set col_strip_next to the next column strip when in the PROCESSING_CALC_LAST state, so that by the LOADING_1 state for the next column strip, col_strip has been set to the next column.
+
+Read address/offset
+
+Read_buf_offset starts at offset 0, so that read_buf_offset is 0 throughout the WAIT state, and the first row is loaded into read_data. It takes two cycles from when we set read_buf_offset until the relevant data appears in read_data. Therefore, the cycle before the first LOADING_1 state (ie, when the go signal goes high), increment read_buf_offset_next to the next row (same column) so that by the LOADING_1 state of the first column strip, read_buf_offset will be the next row, and by the LOADING_2 state, the data for the second row will be available to be read. For similar reasons, we increment read_buf_offset_next to the next row while in the LOADING_1 and LOADING_2 states, so that the third row will be in read_data in the LOADING_3 state and the fourth row will be ready to go for the next PROCESSING_LOADSS state. When in the next PROCESSING_LOADSS state, increment read_buf_offset_next to the next row so that two cycles later in the next PROCESS_LOADSS state, the next row will be available in read_data.
+
+When in the PROCESSING_LOADSS_LAST state, we set read_buf_offset_next back to the first row (and increment by NUM_ACCELERATORS in order to move to the next column strip), so that two cycles later in the LOADING_1 state, the first row of the next column will be available in read_data. For similar reasons, we increment read_buf_offset_next while in the PROCESSING_CALC_LAST state, so that by LOADING_2, the second row of the next column is available, and as before, we increment in the LOADING_1 state, so that the third row will be available in the LOADING_3 state; and we increment in the LOADING_2 state, so that the fourth row will be ready to go for the next PROCESSING_LOADSS state.
+
+We added the wire buf_read_offset_temp. It stores the read offset of the beginning of the next column strip, and it is updated using a flip flop and a control block case statement, just like all the other control elements. We arbitrarily chose buf_read_offset_temp to be updated in the LOADING_1 state. This guarantees it will be updated once per column strip and will not conflict with column-changing logic at the end of columns. (Initially, we didn’t have this wire, and we used the modulo operator, but then we failed a timing constraint.)
+
+Write address/offset
+
+Write_buf_offset starts at offset 0. When in the PROCESSING_CALC state, Increment write_buf_offset_next by buf_write_row_incr so that it points to the next row (same column); therefore in the following cycle, write_buf_offset will point to the correct location for the next PROCESSING_CALC state. When in the PROCESSING_CALC_LAST state, set write_buf_offset_next to the location in row 0 that is in the next column strip (by adding the number of accelerators); therefore by the LOADING_1 state of the next column strip, write_buf_offset will point to the correct location to begin writing for the next column strip.
+
+We added the wire buf_write_offset_temp. It stores the write offset of the beginning of the next column strip, and it is updated using a flip flop and a control block case statement, just like all the other control elements. We arbitrarily chose buf_write_offset_temp to be updated in the LOADING_1 state. This guarantees it will be updated once per column strip and will not conflict with column-changing logic at the end of columns. (Initially, we didn’t have this wire, and we used the modulo operator, but then we failed a timing constraint.)
+
+Write enable
+
+When we are in a calc state, we set write enable to be high; otherwise, we don’t want to write garbage data, so write enable is low.
