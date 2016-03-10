@@ -67,19 +67,13 @@ reg         [IMAGE_DIM_WIDTH-1:0]               row_counter_next;               
 wire        [IMAGE_DIM_WIDTH-1:0]               col_strip;                      // column strip signal, driven by register
 reg         [IMAGE_DIM_WIDTH-1:0]               col_strip_next;                 // next column strip signal, drives register
 wire        [IOBUF_ADDR_WIDTH-1:0]              buf_read_offset;                // read offset from the input buffer, driven by register
-
-
 wire        [IOBUF_ADDR_WIDTH-1:0]              buf_read_offset_temp;
-
-
 reg         [IOBUF_ADDR_WIDTH-1:0]              buf_read_offset_next;           // read offset from the input buffer, drives register
+reg         [IOBUF_ADDR_WIDTH-1:0]              buf_read_offset_temp_next;
 wire        [IOBUF_ADDR_WIDTH-1:0]              buf_write_offset;               // write offset to the output buffer, driven by register
-
-
 wire        [IOBUF_ADDR_WIDTH-1:0]              buf_write_offset_temp;
-
-
 reg         [IOBUF_ADDR_WIDTH-1:0]              buf_write_offset_next;          // write offset to the output buffer, drives register
+reg         [IOBUF_ADDR_WIDTH-1:0]              buf_write_offset_temp_next; 
 reg                                             buf_write_en;                   // write enable signal, driven combinationally
 wire        [IMAGE_DIM_WIDTH-1:0]               buf_write_row_incr;             // specifies the row increment for output, equals input width minus 2, driven combinationally
 wire        [IMAGE_DIM_WIDTH-1:0]               next_col_strip;                 // specifies the next column strip to process, equals current column strip + number of accelerators
@@ -143,11 +137,19 @@ dffre #(IOBUF_ADDR_WIDTH)               buf_read_offset_r (                     
     .q                                          (buf_read_offset)
 );
 
+// dffre #(IOBUF_ADDR_WIDTH)               buf_read_offset_temp_r (                     // read offset register
+//     .clk                                        (clk),
+//     .r                                          (reset),
+//     .en                                         (go & (state == STATE_PROCESSING_LOADSS_LAST)),
+//     .d                                          (buf_read_offset_temp + `NUM_SOBEL_ACCELERATORS),
+//     .q                                          (buf_read_offset_temp)
+// );
+
 dffre #(IOBUF_ADDR_WIDTH)               buf_read_offset_temp_r (                     // read offset register
     .clk                                        (clk),
     .r                                          (reset),
-    .en                                         (go & (state == STATE_PROCESSING_LOADSS_LAST)),
-    .d                                          (buf_read_offset_temp + `NUM_SOBEL_ACCELERATORS),
+    .en                                         (go),
+    .d                                          (buf_read_offset_temp_next),
     .q                                          (buf_read_offset_temp)
 );
 
@@ -159,11 +161,19 @@ dffre #(IOBUF_ADDR_WIDTH)               buf_write_offset_r (                    
     .q                                          (buf_write_offset)
 );
 
+// dffre #(IOBUF_ADDR_WIDTH)               buf_write_offset_temp_r (                     // write offset register
+//     .clk                                        (clk),
+//     .r                                          (reset),
+//     .en                                         (go & (state == STATE_PROCESSING_CALC_LAST)),
+//     .d                                          (buf_write_offset_temp + `NUM_SOBEL_ACCELERATORS),
+//     .q                                          (buf_write_offset_temp)
+// );
+
 dffre #(IOBUF_ADDR_WIDTH)               buf_write_offset_temp_r (                     // write offset register
     .clk                                        (clk),
     .r                                          (reset),
-    .en                                         (go & (state == STATE_PROCESSING_CALC_LAST)),
-    .d                                          (buf_write_offset_temp + `NUM_SOBEL_ACCELERATORS),
+    .en                                         (go),
+    .d                                          (buf_write_offset_temp_next),
     .q                                          (buf_write_offset_temp)
 );
 
@@ -568,7 +578,8 @@ always @ (*) begin
             // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
 						//buf_read_offset_temp = (buf_read_offset == control_n_cols) ? 1 : 0
             //buf_read_offset_next                = (buf_read_offset % control_n_cols) + `NUM_SOBEL_ACCELERATORS;
-						buf_read_offset_next = buf_read_offset_temp + `NUM_SOBEL_ACCELERATORS;
+			// buf_read_offset_next = buf_read_offset_temp + `NUM_SOBEL_ACCELERATORS;
+            buf_read_offset_next = buf_read_offset_temp;
         end
         
         // STATE_PROCESSING_DONE: begin
@@ -585,6 +596,24 @@ always @ (*) begin
         //     // What happens in the default (unexpected) case? Insert your code here. If nothing changes, you can remove this case completely.
         //     buf_read_offset_next                = 'h0;
         // end
+    endcase
+end
+
+// *** Read offset temp calculation (combinational circuitry) ***
+// Added from original code
+always @ (*) begin
+    // What is the correct default behavior? Place your code here.
+    buf_read_offset_temp_next                   = buf_read_offset_temp;
+    
+    case (state)
+        STATE_WAIT: begin
+            buf_read_offset_temp_next           = 'h0;
+        end
+        
+        STATE_LOADING_1: begin
+            // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
+            buf_read_offset_temp_next           = buf_read_offset_temp + `NUM_SOBEL_ACCELERATORS;
+        end
     endcase
 end
 
@@ -633,7 +662,8 @@ always @ (*) begin
         STATE_PROCESSING_CALC_LAST: begin
             // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
             //buf_write_offset_next               = (buf_write_offset % buf_write_row_incr) + `NUM_SOBEL_ACCELERATORS;
-						buf_write_offset_next = buf_write_offset_temp + `NUM_SOBEL_ACCELERATORS;
+			// buf_write_offset_next = buf_write_offset_temp + `NUM_SOBEL_ACCELERATORS;
+            buf_write_offset_next = buf_write_offset_temp;
         end
         
         // STATE_PROCESSING_LOADSS_LAST: begin
@@ -655,6 +685,24 @@ always @ (*) begin
         //     // What happens in the default (unexpected) case? Insert your code here. If nothing changes, you can remove this case completely.
         //     buf_write_offset_next               = 'h0;
         // end
+    endcase
+end
+
+// *** Write offset temp calculation (combinational circuitry) ***
+// Added from original code
+always @ (*) begin
+    // What is the correct default behavior? Place your code here.
+    buf_write_offset_temp_next                   = buf_write_offset_temp;
+    
+    case (state)
+        STATE_WAIT: begin
+            buf_write_offset_temp_next           = 'h0;
+        end
+        
+        STATE_LOADING_1: begin
+            // What happens in this state? Insert your code here. If nothing changes, you can remove this case completely.
+            buf_write_offset_temp_next           = buf_write_offset_temp + `NUM_SOBEL_ACCELERATORS;
+        end
     endcase
 end
 
